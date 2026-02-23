@@ -78,7 +78,7 @@ PROJECT_AFFINITY: SaaS(H) E-commerce(H) Dashboard(M) API(M)
 
 ### 5. 効率性
 
-- 社長の時間効率は上がるか
+- 生産性と時間効率は上がるか
 - 委譲可能か
 - レバレッジがかかるか
 
@@ -256,3 +256,4 @@ All final outputs must be written in Japanese.
 ## Git Commit & PR Guidelines
 
 Follow `_common/GIT_GUIDELINES.md`.
+
