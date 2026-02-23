@@ -2,7 +2,7 @@
 
 ## Background
 
-- Local: Mac Apple M4 Pro / Unified Memory 48GB
+- Local: Local development machine
 - Problem: 2-3 heavy processes in parallel cause memory pressure and OS freeze
 - Goal: Heavy processing runs on cloud, local stays light (IDE/Browser/Slack only)
 
@@ -84,13 +84,13 @@ EC2比較（参考）:
 
 ```
 ┌─────────────────────────┐            ┌──────────────────────────────┐
-│  Local Mac (48GB)       │            │  GitHub Codespace            │
+│  Local Machine           │            │  GitHub Codespace            │
 │                         │   gh CLI   │  basic(2c/8G) or standard(4c/16G) │
 │  Claude Code (CLI)      │──────────→ │                              │
 │  IDE / Browser          │            │  Job A: npm run build        │
 │  Slack                  │            │  Job B: pytest               │
 │                         │ ←──────────│  Job C: python train.py      │
-│  Memory: ~8GB used      │  Results   │                              │
+│  Memory: Light usage     │  Results   │                              │
 │  CPU: Light             │            │  Auto-suspend after 30min    │
 └─────────────────────────┘            │  Storage: 64GB               │
                                        └──────────────────────────────┘
@@ -100,28 +100,28 @@ EC2比較（参考）:
 
 ## Three-Job Parallel Operation Example
 
-### Job A: video-marketing-ai Trend Scraping + Embedding
+### Job A: project-a Data Processing
 
 ```bash
-cs run "cd /workspaces/video-marketing-ai && python scripts/trend_scrape.py && python scripts/generate_embeddings.py"
+cs run "cd /workspaces/project-a && python scripts/process_data.py && python scripts/generate_embeddings.py"
 ```
 
 - Duration: ~3 hours
 - Memory: ~6GB (embedding model + data)
 
-### Job B: coupon-optimization-engine Backfill
+### Job B: project-b Batch Processing
 
 ```bash
-cs run "cd /workspaces/coupon-optimization-engine && npm run backfill:all"
+cs run "cd /workspaces/project-b && npm run batch:all"
 ```
 
 - Duration: ~1 hour
 - Memory: ~4GB (DB queries + aggregation)
 
-### Job C: LROS Prediction Model Training
+### Job C: project-c Model Training
 
 ```bash
-cs run "cd /workspaces/lros && python train.py --config prod.yaml && python generate_report.py"
+cs run "cd /workspaces/project-c && python train.py --config prod.yaml && python generate_report.py"
 ```
 
 - Duration: ~2 hours
@@ -132,9 +132,9 @@ cs run "cd /workspaces/lros && python train.py --config prod.yaml && python gene
 ```bash
 cs status
 # NAME                  STATE      MACHINE        IDLE
-# video-marketing-ai    Available  basic(2c/8G)     2m
-# coupon-engine         Available  basic(2c/8G)     5m
-# lros                  Available  standard(4c/16G) 1m
+# project-a             Available  basic(2c/8G)     2m
+# project-b             Available  basic(2c/8G)     5m
+# project-c             Available  standard(4c/16G) 1m
 
 cs ssh   # Codespace にSSH接続して直接確認
 ```

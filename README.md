@@ -18,7 +18,15 @@ curl -sL https://raw.githubusercontent.com/luna-matching/agent-orchestrator/main
 # ローカルクローンから
 git clone https://github.com/luna-matching/agent-orchestrator.git /tmp/agent-orchestrator
 cd your-project && /tmp/agent-orchestrator/install.sh
+
+# Permissions テンプレート付き
+./install.sh --with-permissions
+
+# MCP + Permissions 同時
+./install.sh --with-mcp --with-permissions
 ```
+
+> 初めて使う方は [docs/QUICKSTART.md](docs/QUICKSTART.md) を参照してください。
 
 ### インストール結果
 
@@ -359,6 +367,15 @@ install.sh nexus analyst ceo pulse experiment researcher
 1. `agents/[name]/SKILL.md` を作成（`_templates/SKILL_TEMPLATE.md` 参照）
 2. `install.sh` の `ALL_AGENTS` に追加
 3. `_common/PROJECT_AFFINITY.md` にアフィニティを追記
+
+## Documentation
+
+| ドキュメント | 内容 |
+|-------------|------|
+| [docs/QUICKSTART.md](docs/QUICKSTART.md) | 初回セットアップ・最初の実行 |
+| [docs/AGENT_SELECTION.md](docs/AGENT_SELECTION.md) | タスク別エージェント選択ガイド |
+| [docs/FAQ.md](docs/FAQ.md) | よくある質問 |
+| [docs/CLOUD_ARCHITECTURE.md](docs/CLOUD_ARCHITECTURE.md) | Cloud-first実行基盤 |
 
 ## Origin
 

@@ -89,7 +89,7 @@ agent-orchestrator/
 │   ├── playground.md     # 単一HTMLインタラクティブツール生成
 │   ├── chrome.md         # Playwrightブラウザ操作自動化
 │   └── pr-review.md     # 5観点構造化PRレビュー
-├── _common/             # 共通プロトコル
+├── _common/             # 共通プロトコル（17個）
 │   ├── AUTORUN.md
 │   ├── INTERACTION.md
 │   ├── GUARDRAIL.md
@@ -102,17 +102,26 @@ agent-orchestrator/
 │   ├── MCP.md                 # MCP連携プロトコル
 │   ├── CLOUD_ROUTING.md       # Cloud実行ルーティングプロトコル
 │   ├── PROGRESS.md            # 進捗表示プロトコル
-│   └── WORKFLOW_AUTOMATION.md # ワークフロー自動化プロトコル
+│   ├── WORKFLOW_AUTOMATION.md # ワークフロー自動化プロトコル
+│   ├── CRITICAL_THINKING.md   # 批判的思考プロトコル
+│   ├── CONTEXT_RECOVERY.md    # セッション復帰プロトコル
+│   ├── TEST_POLICY.md         # テストポリシー（SKIP=FAIL）
+│   └── SPEC_FIRST.md          # 仕様→テスト→実装パイプライン
 ├── _templates/          # プロジェクト配布テンプレート
 │   ├── CLAUDE_PROJECT.md  → .claude/agents/_framework.md
 │   ├── PROJECT.md         → .agents/PROJECT.md
 │   ├── LUNA_CONTEXT.md    → .agents/LUNA_CONTEXT.md
 │   ├── SKILL_TEMPLATE.md  # 新エージェント作成用
 │   ├── mcp-settings.json  # MCP設定テンプレート
+│   ├── settings.json      # Permissions設定テンプレート
+│   ├── settings.local.example.json  # 個人用Permissions例
 │   ├── devcontainer.json  # Codespaces devcontainer設定
 │   └── post-create.sh     # Codespaces初期化スクリプト
 ├── docs/
-│   └── CLOUD_ARCHITECTURE.md  # Cloud-first実行基盤アーキテクチャ
+│   ├── CLOUD_ARCHITECTURE.md  # Cloud-first実行基盤アーキテクチャ
+│   ├── QUICKSTART.md          # 社員向けクイックスタート
+│   ├── AGENT_SELECTION.md     # エージェント選択ガイド
+│   └── FAQ.md                 # よくある質問
 ├── scripts/
 │   ├── cloud/           # Cloud実行基盤（GitHub Codespaces）
 │   │   ├── codespace.sh    # Codespaces CLIラッパー（cs コマンド）
@@ -121,7 +130,7 @@ agent-orchestrator/
 │   │   ├── query.sh
 │   │   └── .env.example
 │   └── setup-mcp.sh    # MCP一括セットアップ
-└── install.sh           # インストーラー（--with-mcp対応）
+└── install.sh           # インストーラー（--with-mcp / --with-permissions対応）
 ```
 
 ## Custom Commands (6)
@@ -148,6 +157,9 @@ curl -sL https://raw.githubusercontent.com/luna-matching/agent-orchestrator/main
 
 # MCP付きインストール
 ./install.sh --with-mcp
+
+# Permissions付きインストール
+./install.sh --with-permissions
 ```
 
 ## Core Principles

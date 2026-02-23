@@ -8,6 +8,7 @@ set -euo pipefail
 #   ./install.sh                    # Install all agents
 #   ./install.sh nexus rally builder # Install specific agents
 #   ./install.sh --with-mcp         # Install agents + setup MCP servers
+#   ./install.sh --with-permissions  # Install agents + safe permission defaults
 
 REPO="luna-matching/agent-orchestrator"
 BRANCH="main"
@@ -17,10 +18,12 @@ ALL_AGENTS="analyst anvil architect arena artisan atlas auditor bard bolt bridge
 
 # Parse flags
 WITH_MCP=false
+WITH_PERMISSIONS=false
 AGENT_ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --with-mcp) WITH_MCP=true ;;
+    --with-permissions) WITH_PERMISSIONS=true ;;
     *) AGENT_ARGS+=("$arg") ;;
   esac
 done
@@ -47,7 +50,7 @@ git clone --depth 1 --branch "$BRANCH" "https://github.com/${REPO}.git" "$TMPDIR
 INSTALLED=0
 SKIPPED=0
 
-echo "[1/8] Installing agent definitions..."
+echo "[1/9] Installing agent definitions..."
 for agent in $AGENTS; do
   if [ -d "$TMPDIR/agents/$agent" ]; then
     # Copy SKILL.md as flat file for Claude Code agent discovery
@@ -65,7 +68,7 @@ for agent in $AGENTS; do
   fi
 done
 
-echo "[2/8] Installing custom commands..."
+echo "[2/9] Installing custom commands..."
 COMMANDS_INSTALLED=0
 for cmd_file in "$TMPDIR"/commands/*.md; do
   if [ -f "$cmd_file" ]; then
@@ -76,10 +79,10 @@ for cmd_file in "$TMPDIR"/commands/*.md; do
   fi
 done
 
-echo "[3/8] Downloading framework protocol..."
+echo "[3/9] Downloading framework protocol..."
 cp "$TMPDIR/_templates/CLAUDE_PROJECT.md" ".claude/agents/_framework.md"
 
-echo "[4/8] Setting up shared knowledge..."
+echo "[4/9] Setting up shared knowledge..."
 if [ ! -f ".agents/PROJECT.md" ]; then
   cp "$TMPDIR/_templates/PROJECT.md" ".agents/PROJECT.md"
   echo "  -> Created .agents/PROJECT.md"
@@ -87,7 +90,7 @@ else
   echo "  -> .agents/PROJECT.md already exists, skipping"
 fi
 
-echo "[5/8] Setting up business context..."
+echo "[5/9] Setting up business context..."
 if [ ! -f ".agents/LUNA_CONTEXT.md" ]; then
   cp "$TMPDIR/_templates/LUNA_CONTEXT.md" ".agents/LUNA_CONTEXT.md"
   echo "  -> Created .agents/LUNA_CONTEXT.md (customize for your project)"
@@ -95,7 +98,7 @@ else
   echo "  -> .agents/LUNA_CONTEXT.md already exists, skipping"
 fi
 
-echo "[6/8] Copying MCP scripts and templates..."
+echo "[6/9] Copying MCP scripts and templates..."
 mkdir -p .claude/scripts
 if [ -f "$TMPDIR/scripts/setup-mcp.sh" ]; then
   cp "$TMPDIR/scripts/setup-mcp.sh" ".claude/scripts/setup-mcp.sh"
@@ -129,7 +132,7 @@ if [ -f "$TMPDIR/_templates/devcontainer.json" ]; then
   echo "  -> Copied devcontainer template"
 fi
 
-echo "[7/8] Checking CLAUDE.md..."
+echo "[7/9] Checking CLAUDE.md..."
 if [ -f "CLAUDE.md" ]; then
   if grep -q "Agent Orchestrator" CLAUDE.md 2>/dev/null; then
     echo "  -> CLAUDE.md already has framework reference, skipping"
@@ -203,6 +206,7 @@ echo "Next steps:"
 echo "  1. Customize .agents/LUNA_CONTEXT.md for your project"
 echo "  2. Review .agents/PROJECT.md for shared knowledge"
 echo "  3. Customize CLAUDE.md for your project"
+echo "  4. Run './install.sh --with-permissions' for safe permission defaults"
 echo ""
 echo "Usage (agents):"
 echo "  /ceo この機能の優先度を判断して"
@@ -235,7 +239,7 @@ echo "  bash .claude/scripts/cloud/cloud.sh run \"npm run build\""
 echo "  bash .claude/scripts/cloud/cloud.sh status"
 
 echo ""
-echo "[8/8] MCP setup..."
+echo "[8/9] MCP setup..."
 if [ "$WITH_MCP" = true ]; then
   if [ -f ".claude/scripts/setup-mcp.sh" ]; then
     echo "  -> Running MCP setup (--with-mcp flag detected)..."
@@ -245,4 +249,24 @@ if [ "$WITH_MCP" = true ]; then
   fi
 else
   echo "  -> Skipped (use --with-mcp to auto-setup)"
+fi
+
+echo "[9/9] Permissions setup..."
+if [ "$WITH_PERMISSIONS" = true ]; then
+  if [ -f "$TMPDIR/_templates/settings.json" ]; then
+    if [ ! -f ".claude/settings.json" ]; then
+      cp "$TMPDIR/_templates/settings.json" ".claude/settings.json"
+      echo "  -> Created .claude/settings.json (project permissions)"
+    else
+      echo "  -> .claude/settings.json already exists, skipping"
+    fi
+    if [ -f "$TMPDIR/_templates/settings.local.example.json" ]; then
+      cp "$TMPDIR/_templates/settings.local.example.json" ".claude/settings.local.example.json"
+      echo "  -> Copied settings.local.example.json"
+    fi
+  else
+    echo "  [WARN] _templates/settings.json not found, skipping"
+  fi
+else
+  echo "  -> Skipped (use --with-permissions to install safe defaults)"
 fi
