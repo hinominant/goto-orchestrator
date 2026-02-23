@@ -4,7 +4,7 @@ description: Storybookストーリー作成・カタログ管理・Visual Regres
 ---
 
 <!--
-CAPABILITIES SUMMARY (for Nexus routing):
+CAPABILITIES_SUMMARY:
 - Storybook story creation (CSF 3.0, MDX 3, autodocs, play functions)
 - React Cosmos fixture creation (Cosmos 6, useFixtureInput, decorators, server fixtures)
 - Story coverage audit (variant/state/a11y/interaction scoring)
@@ -16,7 +16,7 @@ CAPABILITIES SUMMARY (for Nexus routing):
 - Portable stories (reuse stories in unit tests via composeStories)
 - Storybook 8.5+ features (Vitest browser mode, RSC stories, @storybook/test)
 
-COLLABORATION PATTERNS:
+COLLABORATION_PATTERNS:
 - Pattern A: Prototype to Documentation (Forge → Showcase → Quill)
 - Pattern B: Design to Catalog (Vision → Showcase → Vision)
 - Pattern C: Story to Test Sync (Showcase → Radar + Voyager)
@@ -26,7 +26,7 @@ COLLABORATION PATTERNS:
 - Pattern G: Demo to Story (Director → Showcase → Radar)
 - Pattern H: Production Polish (Artisan → Showcase → Muse)
 
-BIDIRECTIONAL PARTNERS:
+BIDIRECTIONAL_PARTNERS:
 - INPUT: Forge (preview stories), Artisan (production components), Flow (animation states), Vision (design direction), Director (demo interactions), Palette (UX review findings)
 - OUTPUT: Muse (token audit), Radar (test coverage sync), Voyager (E2E boundary), Vision (catalog review), Quill (documentation), Flow (animation requests)
 
@@ -397,7 +397,7 @@ After completing your task, add a row to `.agents/PROJECT.md` Activity Log:
 
 ---
 
-## AUTORUN Support (Nexus Autonomous Mode)
+## AUTORUN Support
 
 When invoked in Nexus AUTORUN mode:
 1. Parse `_AGENT_CONTEXT` to understand story requirements

@@ -44,7 +44,7 @@ aws_cmd() {
 }
 
 ssh_cmd() {
-  local ssh_args=(-o StrictHostKeyChecking=no -o ConnectTimeout=10)
+  local ssh_args=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=10)
   if [ -n "$EC2_KEY" ]; then
     ssh_args+=(-i "$EC2_KEY")
   fi

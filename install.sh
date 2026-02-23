@@ -182,6 +182,38 @@ FRAMEWORK_EOF
   echo "  -> Created CLAUDE.md with framework reference"
 fi
 
+echo "[8/9] MCP setup..."
+if [ "$WITH_MCP" = true ]; then
+  if [ -f ".claude/scripts/setup-mcp.sh" ]; then
+    echo "  -> Running MCP setup (--with-mcp flag detected)..."
+    bash ".claude/scripts/setup-mcp.sh"
+  else
+    echo "  [WARN] .claude/scripts/setup-mcp.sh not found, skipping MCP setup"
+  fi
+else
+  echo "  -> Skipped (use --with-mcp to auto-setup)"
+fi
+
+echo "[9/9] Permissions setup..."
+if [ "$WITH_PERMISSIONS" = true ]; then
+  if [ -f "$TMPDIR/_templates/settings.json" ]; then
+    if [ ! -f ".claude/settings.json" ]; then
+      cp "$TMPDIR/_templates/settings.json" ".claude/settings.json"
+      echo "  -> Created .claude/settings.json (project permissions)"
+    else
+      echo "  -> .claude/settings.json already exists, skipping"
+    fi
+    if [ -f "$TMPDIR/_templates/settings.local.example.json" ]; then
+      cp "$TMPDIR/_templates/settings.local.example.json" ".claude/settings.local.example.json"
+      echo "  -> Copied settings.local.example.json"
+    fi
+  else
+    echo "  [WARN] _templates/settings.json not found, skipping"
+  fi
+else
+  echo "  -> Skipped (use --with-permissions to install safe defaults)"
+fi
+
 echo ""
 echo "=== Installation complete ==="
 echo "  Installed: ${INSTALLED} agents"
@@ -237,36 +269,3 @@ echo "  # Usage:"
 echo "  bash .claude/scripts/cloud/cloud.sh start --repo OWNER/REPO"
 echo "  bash .claude/scripts/cloud/cloud.sh run \"npm run build\""
 echo "  bash .claude/scripts/cloud/cloud.sh status"
-
-echo ""
-echo "[8/9] MCP setup..."
-if [ "$WITH_MCP" = true ]; then
-  if [ -f ".claude/scripts/setup-mcp.sh" ]; then
-    echo "  -> Running MCP setup (--with-mcp flag detected)..."
-    bash ".claude/scripts/setup-mcp.sh"
-  else
-    echo "  [WARN] .claude/scripts/setup-mcp.sh not found, skipping MCP setup"
-  fi
-else
-  echo "  -> Skipped (use --with-mcp to auto-setup)"
-fi
-
-echo "[9/9] Permissions setup..."
-if [ "$WITH_PERMISSIONS" = true ]; then
-  if [ -f "$TMPDIR/_templates/settings.json" ]; then
-    if [ ! -f ".claude/settings.json" ]; then
-      cp "$TMPDIR/_templates/settings.json" ".claude/settings.json"
-      echo "  -> Created .claude/settings.json (project permissions)"
-    else
-      echo "  -> .claude/settings.json already exists, skipping"
-    fi
-    if [ -f "$TMPDIR/_templates/settings.local.example.json" ]; then
-      cp "$TMPDIR/_templates/settings.local.example.json" ".claude/settings.local.example.json"
-      echo "  -> Copied settings.local.example.json"
-    fi
-  else
-    echo "  [WARN] _templates/settings.json not found, skipping"
-  fi
-else
-  echo "  -> Skipped (use --with-permissions to install safe defaults)"
-fi
