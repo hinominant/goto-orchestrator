@@ -9,6 +9,7 @@ set -euo pipefail
 #   ./install.sh nexus rally builder # Install specific agents
 #   ./install.sh --with-mcp         # Install agents + setup MCP servers
 #   ./install.sh --with-permissions  # Install agents + safe permission defaults
+#   ./install.sh --with-hooks        # Install agents + tool risk hooks
 
 REPO="hinominant/agent-orchestrator"
 BRANCH="main"
@@ -19,11 +20,13 @@ ALL_AGENTS="analyst anvil architect arena artisan atlas auditor bard bolt bridge
 # Parse flags
 WITH_MCP=false
 WITH_PERMISSIONS=false
+WITH_HOOKS=false
 AGENT_ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --with-mcp) WITH_MCP=true ;;
     --with-permissions) WITH_PERMISSIONS=true ;;
+    --with-hooks) WITH_HOOKS=true ;;
     *) AGENT_ARGS+=("$arg") ;;
   esac
 done
@@ -50,7 +53,7 @@ git clone --depth 1 --branch "$BRANCH" "https://github.com/${REPO}.git" "$TMPDIR
 INSTALLED=0
 SKIPPED=0
 
-echo "[1/9] Installing agent definitions..."
+echo "[1/10] Installing agent definitions..."
 for agent in $AGENTS; do
   if [ -d "$TMPDIR/agents/$agent" ]; then
     # Copy SKILL.md as flat file for Claude Code agent discovery
@@ -68,7 +71,7 @@ for agent in $AGENTS; do
   fi
 done
 
-echo "[2/9] Installing custom commands..."
+echo "[2/10] Installing custom commands..."
 COMMANDS_INSTALLED=0
 for cmd_file in "$TMPDIR"/commands/*.md; do
   if [ -f "$cmd_file" ]; then
@@ -79,10 +82,10 @@ for cmd_file in "$TMPDIR"/commands/*.md; do
   fi
 done
 
-echo "[3/9] Downloading framework protocol..."
+echo "[3/10] Downloading framework protocol..."
 cp "$TMPDIR/_templates/CLAUDE_PROJECT.md" ".claude/agents/_framework.md"
 
-echo "[4/9] Setting up shared knowledge..."
+echo "[4/10] Setting up shared knowledge..."
 if [ ! -f ".agents/PROJECT.md" ]; then
   cp "$TMPDIR/_templates/PROJECT.md" ".agents/PROJECT.md"
   echo "  -> Created .agents/PROJECT.md"
@@ -90,7 +93,7 @@ else
   echo "  -> .agents/PROJECT.md already exists, skipping"
 fi
 
-echo "[5/9] Setting up business context..."
+echo "[5/10] Setting up business context..."
 if [ ! -f ".agents/LUNA_CONTEXT.md" ]; then
   cp "$TMPDIR/_templates/LUNA_CONTEXT.md" ".agents/LUNA_CONTEXT.md"
   echo "  -> Created .agents/LUNA_CONTEXT.md (customize for your project)"
@@ -98,7 +101,7 @@ else
   echo "  -> .agents/LUNA_CONTEXT.md already exists, skipping"
 fi
 
-echo "[6/9] Copying MCP scripts and templates..."
+echo "[6/10] Copying MCP scripts and templates..."
 mkdir -p .claude/scripts
 if [ -f "$TMPDIR/scripts/setup-mcp.sh" ]; then
   cp "$TMPDIR/scripts/setup-mcp.sh" ".claude/scripts/setup-mcp.sh"
@@ -132,7 +135,7 @@ if [ -f "$TMPDIR/_templates/devcontainer.json" ]; then
   echo "  -> Copied devcontainer template"
 fi
 
-echo "[7/9] Checking CLAUDE.md..."
+echo "[7/10] Checking CLAUDE.md..."
 if [ -f "CLAUDE.md" ]; then
   if grep -q "Agent Orchestrator" CLAUDE.md 2>/dev/null; then
     echo "  -> CLAUDE.md already has framework reference, skipping"
@@ -182,7 +185,7 @@ FRAMEWORK_EOF
   echo "  -> Created CLAUDE.md with framework reference"
 fi
 
-echo "[8/9] MCP setup..."
+echo "[8/10] MCP setup..."
 if [ "$WITH_MCP" = true ]; then
   if [ -f ".claude/scripts/setup-mcp.sh" ]; then
     echo "  -> Running MCP setup (--with-mcp flag detected)..."
@@ -194,7 +197,7 @@ else
   echo "  -> Skipped (use --with-mcp to auto-setup)"
 fi
 
-echo "[9/9] Permissions setup..."
+echo "[9/10] Permissions setup..."
 if [ "$WITH_PERMISSIONS" = true ]; then
   if [ -f "$TMPDIR/_templates/settings.json" ]; then
     if [ ! -f ".claude/settings.json" ]; then
@@ -212,6 +215,38 @@ if [ "$WITH_PERMISSIONS" = true ]; then
   fi
 else
   echo "  -> Skipped (use --with-permissions to install safe defaults)"
+fi
+
+echo "[10/10] Hooks setup..."
+if [ "$WITH_HOOKS" = true ]; then
+  HOOKS_DIR="$HOME/.claude/hooks"
+  mkdir -p "$HOOKS_DIR"
+  if [ -f "$TMPDIR/_templates/hooks/tool-risk.js" ]; then
+    cp "$TMPDIR/_templates/hooks/tool-risk.js" "$HOOKS_DIR/tool-risk.js"
+    chmod +x "$HOOKS_DIR/tool-risk.js"
+    echo "  -> Installed tool-risk.js to $HOOKS_DIR/"
+
+    # settings.json にフック設定を追加
+    SETTINGS_FILE="$HOME/.claude/settings.json"
+    if [ -f "$SETTINGS_FILE" ]; then
+      # settings.json が存在する場合、hooks が未設定なら追加
+      if ! grep -q "tool-risk" "$SETTINGS_FILE" 2>/dev/null; then
+        echo "  -> Adding hook config to settings.json"
+        echo "  [NOTE] Please add the following to your ~/.claude/settings.json hooks.PreToolUse:"
+        echo '    { "hooks": [{ "type": "command", "command": "node ~/.claude/hooks/tool-risk.js" }] }'
+      else
+        echo "  -> Hook already configured in settings.json"
+      fi
+    else
+      echo "  [NOTE] ~/.claude/settings.json not found."
+      echo "  Add this to your settings.json hooks.PreToolUse:"
+      echo '    { "hooks": [{ "type": "command", "command": "node ~/.claude/hooks/tool-risk.js" }] }'
+    fi
+  else
+    echo "  [WARN] _templates/hooks/tool-risk.js not found, skipping"
+  fi
+else
+  echo "  -> Skipped (use --with-hooks to install risk classification)"
 fi
 
 echo ""
@@ -260,6 +295,9 @@ echo "  bash scripts/setup-mcp.sh"
 echo ""
 echo "  # Project-specific PostgreSQL MCP"
 echo "  claude mcp add postgres -- npx -y @modelcontextprotocol/server-postgres 'postgresql://user:pass@host:5432/db'"
+echo ""
+echo "Hooks:"
+echo "  ./install.sh --with-hooks    # Install tool risk classification hooks"
 echo ""
 echo "Cloud Execution (Codespaces推奨):"
 echo "  # Setup"

@@ -64,6 +64,22 @@ User Request
 
 ---
 
+## Model Routing (Bloom Taxonomy)
+
+タスク複雑度を6段階で判定し、最適モデルを自動選択。
+
+| Level | Description | Model |
+|-------|-------------|-------|
+| L1-L2 | 情報取得・理解 | Haiku |
+| L3-L4 | 実装・分析 | Sonnet |
+| L5-L6 | 評価・設計 | Opus |
+
+- 複数レベル一致時は上位を採用
+- 環境変数 `BLOOM_MODEL_OVERRIDE` で強制指定可能
+- 詳細: `_common/MODEL_ROUTING.md`
+
+---
+
 ## Guardrail Levels
 
 | Level | Trigger | Action |
@@ -80,6 +96,18 @@ L1 → 改善なし → L2 → 自動回復成功 → CONTINUE
                     → 回復失敗 → L3 → 解決 → CONTINUE
                                     → 重大 → L4 → ROLLBACK + STOP
 ```
+
+### Time-based Escalation
+
+エージェント無応答時の段階的対処:
+
+| Phase | Trigger | Action |
+|-------|---------|--------|
+| NUDGE | 2分無応答 | リマインド |
+| RETRY | 4分無応答 | タスク再送（最大2回） |
+| RESET | 6分無応答 | 再割当 or 人間エスカレート |
+
+- 詳細: `_common/ESCALATION.md`
 
 ---
 
@@ -225,6 +253,19 @@ _STEP_COMPLETE:
 - Next action: CONTINUE | VERIFY | DONE
 ```
 
+### Token Budget
+
+エージェント間通信のトークン予算管理:
+
+| Scenario | Budget |
+|----------|--------|
+| NEXUS_HANDOFF | 3000 tokens |
+| Rally branch | 1000 tokens |
+| Error report | 500 tokens |
+
+- 予算超過時は段階的圧縮（空行除去→URL短縮→重複除去→トランケート）
+- 詳細: `_common/SLIM_CONTEXT.md`
+
 ---
 
 ## Coordinator Protocols
@@ -293,6 +334,22 @@ _STEP_COMPLETE:
 
 - 実装完了後はテスト + パイプライン実行 + 出力目視確認まで行う
 - テスト未実行のまま「完了」と報告しない
+
+### Tool Risk (Hooks)
+
+PreToolUse Hook でツール実行前にリスク分類を表示:
+- HIGH: 破壊的操作 → 確認ダイアログ
+- MEDIUM: 外部影響 → 説明表示
+- LOW: 読み取り → サイレント通過
+- `install.sh --with-hooks` で設定
+- 詳細: `_common/TOOL_RISK.md`
+
+### Skill Discovery
+
+繰り返しパターンの自動検出 → スラッシュコマンド化提案:
+- 3回以上の出現 → 候補として提案
+- WORKFLOW_AUTOMATION と補完関係（セッション内 vs セッション横断）
+- 詳細: `_common/SKILL_DISCOVERY.md`
 
 ---
 

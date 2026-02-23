@@ -1,0 +1,78 @@
+# Model Routing Protocol
+
+Bloom Taxonomy に基づくタスク複雑度の自動判定と最適モデル選択。
+
+---
+
+## Bloom Taxonomy Levels
+
+| Level | Name | Description | Default Model |
+|-------|------|-------------|---------------|
+| L1 | REMEMBER | 単純な情報取得・一覧表示 | claude-haiku-4-5-20251001 |
+| L2 | UNDERSTAND | 内容の理解・要約・翻訳 | claude-haiku-4-5-20251001 |
+| L3 | APPLY | 既知パターンの適用・修正 | claude-sonnet-4-5-20250929 |
+| L4 | ANALYZE | 構造分析・根本原因特定 | claude-sonnet-4-5-20250929 |
+| L5 | EVALUATE | 判断・トレードオフ比較 | claude-sonnet-4-5-20250929 |
+| L6 | CREATE | 新規設計・アーキテクチャ | claude-opus-4-6-20250918 |
+
+---
+
+## Classification Rules
+
+### Keyword Mapping
+
+| Keywords | Level |
+|----------|-------|
+| 取得、一覧、確認、状態、参照、表示、リスト | L1 REMEMBER |
+| 要約、説明、理解、翻訳、整理、まとめ、概要 | L2 UNDERSTAND |
+| 実装、修正、追加、適用、変更、更新、デプロイ | L3 APPLY |
+| 分析、原因、比較、調査、根本原因、構造分析、なぜ | L4 ANALYZE |
+| 判断、評価、トレードオフ、優先、比較検討、意思決定、選定 | L5 EVALUATE |
+| 設計、アーキテクチャ、戦略、創造、構築、新規設計、フレームワーク | L6 CREATE |
+
+### Priority Rules
+
+- 複数レベルが一致した場合、最も高いレベルを採用
+- 同スコアなら上位レベルを優先（コスト < 品質リスク）
+- コンテキストから暗黙の複雑度を推定する（例: 「修正」でもアーキテクチャ変更が必要なら L6）
+- 不確実な場合は1段階上を選択
+- キーワード一致なしの場合、デフォルトは L3 APPLY
+
+---
+
+## Usage in Agent Chain
+
+```yaml
+# Nexus / Rally がタスク投入時にモデルを自動決定
+TASK_ROUTING:
+  description: "LTV改善施策を設計する"
+  bloom_level: L6 (CREATE)
+  model: claude-opus-4-6-20250918
+  agent: CEO → Sherpa → Builder
+```
+
+### Override
+
+環境変数 `BLOOM_MODEL_OVERRIDE` でモデルを強制指定可能（デバッグ・コスト制御用）。
+
+---
+
+## Chain Template Integration
+
+| Chain | Typical Bloom Level | Routing |
+|-------|--------------------|---------|
+| Scout → Builder → Radar | L3-L4 | Sonnet for Scout, Sonnet for Builder |
+| Sherpa → Builder → Radar | L4-L5 | Sonnet for all |
+| CEO → Sherpa → Builder | L5-L6 | Opus for CEO, Sonnet for Sherpa/Builder |
+| Analyst → CEO | L4-L5 | Sonnet for Analyst, Opus for CEO |
+
+---
+
+## Cost Optimization
+
+| Scenario | Strategy |
+|----------|----------|
+| 大量の情報取得タスク | Haiku で並列実行 |
+| 分析 + 実装の混合チェーン | 分析=Sonnet、実装=Sonnet |
+| アーキテクチャ判断 | Opus（ケチらない） |
+| テスト実行・lint | Haiku で十分 |

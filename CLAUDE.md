@@ -89,7 +89,7 @@ agent-orchestrator/
 │   ├── playground.md     # 単一HTMLインタラクティブツール生成
 │   ├── chrome.md         # Playwrightブラウザ操作自動化
 │   └── pr-review.md     # 5観点構造化PRレビュー
-├── _common/             # 共通プロトコル（17個）
+├── _common/             # 共通プロトコル（22個）
 │   ├── AUTORUN.md
 │   ├── INTERACTION.md
 │   ├── GUARDRAIL.md
@@ -106,7 +106,12 @@ agent-orchestrator/
 │   ├── CRITICAL_THINKING.md   # 批判的思考プロトコル
 │   ├── CONTEXT_RECOVERY.md    # セッション復帰プロトコル
 │   ├── TEST_POLICY.md         # テストポリシー（SKIP=FAIL）
-│   └── SPEC_FIRST.md          # 仕様→テスト→実装パイプライン
+│   ├── SPEC_FIRST.md          # 仕様→テスト→実装パイプライン
+│   ├── MODEL_ROUTING.md       # Bloom Taxonomy モデル自動選択
+│   ├── ESCALATION.md          # 時間ベース3段階エスカレーション
+│   ├── SLIM_CONTEXT.md        # トークン予算管理
+│   ├── TOOL_RISK.md            # ツールリスク分類 + Hooks
+│   └── SKILL_DISCOVERY.md      # ボトムアップ スキル発見
 ├── _templates/          # プロジェクト配布テンプレート
 │   ├── CLAUDE_PROJECT.md  → .claude/agents/_framework.md
 │   ├── PROJECT.md         → .agents/PROJECT.md
@@ -116,7 +121,9 @@ agent-orchestrator/
 │   ├── settings.json      # Permissions設定テンプレート
 │   ├── settings.local.example.json  # 個人用Permissions例
 │   ├── devcontainer.json  # Codespaces devcontainer設定
-│   └── post-create.sh     # Codespaces初期化スクリプト
+│   ├── post-create.sh     # Codespaces初期化スクリプト
+│   └── hooks/
+│       └── tool-risk.js   # PreToolUse リスク判定フック
 ├── docs/
 │   ├── CLOUD_ARCHITECTURE.md  # Cloud-first実行基盤アーキテクチャ
 │   ├── QUICKSTART.md          # 社員向けクイックスタート
