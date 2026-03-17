@@ -1,4 +1,4 @@
-# Agent Orchestrator - Framework Protocol
+# Hino Orchestrator - Framework Protocol
 
 > このファイルは `.claude/agents/_framework.md` としてプロジェクトに配置される。
 > 全エージェントがこのプロトコルに従って動作する。

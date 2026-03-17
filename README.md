@@ -1,4 +1,4 @@
-# Agent Orchestrator
+# Hino Orchestrator
 
 Claude Code でエージェントチームを構築するためのフレームワーク。
 

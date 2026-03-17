@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Agent Orchestrator Installer
+# Hino Orchestrator Installer
 # Usage:
 #   curl -sL https://raw.githubusercontent.com/hinominant/hino-orchestrator/main/install.sh | bash
 #   curl -sL https://raw.githubusercontent.com/hinominant/hino-orchestrator/main/install.sh | bash -s -- nexus rally builder radar
@@ -34,7 +34,7 @@ done
 # Default: install all if no agent args
 AGENTS="${AGENT_ARGS[*]:-$ALL_AGENTS}"
 
-echo "=== Agent Orchestrator Installer ==="
+echo "=== Hino Orchestrator Installer ==="
 echo "Source: github.com/${REPO}"
 echo ""
 
@@ -164,14 +164,14 @@ fi
 
 echo "[9/12] Checking CLAUDE.md..."
 if [ -f "CLAUDE.md" ]; then
-  if grep -q "Agent Orchestrator" CLAUDE.md 2>/dev/null; then
+  if grep -q "Hino Orchestrator" CLAUDE.md 2>/dev/null; then
     echo "  -> CLAUDE.md already has framework reference, skipping"
   else
     cat >> CLAUDE.md << 'FRAMEWORK_EOF'
 
 ## Agent Team Framework
 
-This project uses [Agent Orchestrator](https://github.com/hinominant/hino-orchestrator).
+This project uses [Hino Orchestrator](https://github.com/hinominant/hino-orchestrator).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules
@@ -194,7 +194,7 @@ else
 
 ## Agent Team Framework
 
-This project uses [Agent Orchestrator](https://github.com/hinominant/hino-orchestrator).
+This project uses [Hino Orchestrator](https://github.com/hinominant/hino-orchestrator).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules
