@@ -11,7 +11,7 @@
 ## Repository Structure
 
 ```
-agent-orchestrator/
+hino-orchestrator/
 ├── agents/              # エージェント定義（68個）
 │   ├── ceo/             # Luna独自: 意思決定（最上流）
 │   ├── analyst/         # Luna独自: データ分析
@@ -203,10 +203,10 @@ ALICE（ARIS/LROS/NOVA/Secretary）統合。詳細は `_common/ALICE_INTEGRATION
 
 ```bash
 # 全68エージェント
-curl -sL https://raw.githubusercontent.com/hinominant/agent-orchestrator/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/hinominant/hino-orchestrator/main/install.sh | bash
 
 # 選択インストール
-curl -sL https://raw.githubusercontent.com/hinominant/agent-orchestrator/main/install.sh | bash -s -- nexus builder radar ceo
+curl -sL https://raw.githubusercontent.com/hinominant/hino-orchestrator/main/install.sh | bash -s -- nexus builder radar ceo
 
 # Hooks付き
 ./install.sh --with-hooks

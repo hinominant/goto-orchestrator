@@ -3,15 +3,15 @@ set -euo pipefail
 
 # Agent Orchestrator Installer
 # Usage:
-#   curl -sL https://raw.githubusercontent.com/hinominant/agent-orchestrator/main/install.sh | bash
-#   curl -sL https://raw.githubusercontent.com/hinominant/agent-orchestrator/main/install.sh | bash -s -- nexus rally builder radar
+#   curl -sL https://raw.githubusercontent.com/hinominant/hino-orchestrator/main/install.sh | bash
+#   curl -sL https://raw.githubusercontent.com/hinominant/hino-orchestrator/main/install.sh | bash -s -- nexus rally builder radar
 #   ./install.sh                    # Install all agents
 #   ./install.sh nexus rally builder # Install specific agents
 #   ./install.sh --with-mcp         # Install agents + setup MCP servers
 #   ./install.sh --with-permissions  # Install agents + safe permission defaults
 #   ./install.sh --with-hooks        # Install agents + tool risk hooks (3-Hook体制)
 
-REPO="hinominant/agent-orchestrator"
+REPO="hinominant/hino-orchestrator"
 BRANCH="main"
 
 # All 68 agents (65 simota + 3 Luna originals: ceo, analyst, auditor)
@@ -171,7 +171,7 @@ if [ -f "CLAUDE.md" ]; then
 
 ## Agent Team Framework
 
-This project uses [Agent Orchestrator](https://github.com/hinominant/agent-orchestrator).
+This project uses [Agent Orchestrator](https://github.com/hinominant/hino-orchestrator).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules
@@ -194,7 +194,7 @@ else
 
 ## Agent Team Framework
 
-This project uses [Agent Orchestrator](https://github.com/hinominant/agent-orchestrator).
+This project uses [Agent Orchestrator](https://github.com/hinominant/hino-orchestrator).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules
