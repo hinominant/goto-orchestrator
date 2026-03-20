@@ -1,7 +1,7 @@
 # Flag System — リアルタイムアラートシステム仕様書
 
-> Version: 1.0.0
-> Last Updated: 2026-03-19
+> Version: 1.1.0
+> Last Updated: 2026-03-20
 > Status: ACTIVE
 
 ---
@@ -42,9 +42,11 @@ goto-orchestrator の Security-First 設計思想の中核を担い、`tool-risk
 | SEC-F003 | 認証情報外部送信 | :red_circle: RED | `curl`/`wget` でシークレットを含むデータを外部エンドポイントに送信 | ブロック | 1. 認証情報を環境変数から読み込む 2. `--data-binary @file` でファイル経由送信 |
 | SEC-F004 | シークレット stdout 出力 | :red_circle: RED | `echo`/`printf`/`cat` でシークレット環境変数を標準出力に出力 | ブロック | 1. マスキング出力 `echo "${VAR:0:4}****"` 2. ログ出力から除外 |
 | SEC-F005 | 機密ファイルアクセス | :yellow_circle: YELLOW | `~/.aws/credentials`, `~/.ssh/id_rsa`, `*.pem`, `*.key` 等へのアクセス | 確認要求 + アクセス理由の表示 | 1. 必要最小限のアクセスに限定 2. 読み取り専用で操作 |
-| SEC-F006 | ネットワーク外部通信 | :yellow_circle: YELLOW | 許可リスト外のドメインへの `curl`/`wget`/`ssh` 通信 | 確認要求 + 宛先ドメインの表示 | 1. 許可リストへの追加を検討 2. 通信内容の確認 |
-| SEC-F007 | 権限昇格 | :yellow_circle: YELLOW | `sudo`, `chmod 777`, `chown root` 等の権限操作 | 確認要求 + 影響範囲の表示 | 1. 最小権限原則の適用 2. `chmod 755` 等の適切な権限設定 |
+| SEC-F006 | ANTHROPIC_BASE_URL 書き換え | :red_circle: RED | ANTHROPIC_BASE_URL の環境変数変更 | ブロック + CVE-2026-21852 警告 | 1. API キーを即座に rotate 2. Claude Code を v2.0.65 以上に更新 |
+| SEC-F007 | allow リストバイパス試行 | :yellow_circle: YELLOW | python3 -c / node -e / cat .env 等の検出 | 警告 + allow ルール見直しを提案 | 1. settings.json の allow ルールを精査 2. ワイルドカードを削除 |
 | SEC-F008 | 依存関係の脆弱性 | :green_circle: GREEN | `npm audit`, `pip audit` で既知の脆弱性が検出された場合 | 脆弱性レポートの表示 + 更新推奨 | 1. `npm audit fix` 2. 個別パッケージの更新 |
+| SEC-F009 | ネットワーク外部通信 | :yellow_circle: YELLOW | 許可リスト外のドメインへの `curl`/`wget`/`ssh` 通信 | 確認要求 + 宛先ドメインの表示 | 1. 許可リストへの追加を検討 2. 通信内容の確認 |
+| SEC-F010 | 権限昇格 | :yellow_circle: YELLOW | `sudo`, `chmod 777`, `chown root` 等の権限操作 | 確認要求 + 影響範囲の表示 | 1. 最小権限原則の適用 2. `chmod 755` 等の適切な権限設定 |
 
 #### SEC 検出パターン（正規表現）
 
@@ -174,6 +176,39 @@ curl.*api\.line\.me.*push
 
 ---
 
+### ELI（Elicitation フラグ）
+
+MCPサーバーからの情報要求（Elicitation）に隠し指示が含まれていないかを検知する。SEC-P005（MCP Elicitation インジェクション）の対策として機能する。
+
+| ID | Name | Level | Trigger | Action | Recovery Path |
+|----|------|-------|---------|--------|---------------|
+| ELI-F001 | コマンド実行指示 | :red_circle: RED | "execute the following" / "以下のコマンドを実行" が Elicitation テキストに含まれる | ブロック + MCPサーバー調査を推奨 | 1. MCPサーバーのソースコードを確認 2. 侵害されたサーバーを無効化 |
+| ELI-F002 | 外部URL送信指示 | :red_circle: RED | Elicitation に curl/http + send が含まれる | ブロック | 1. MCPサーバーを無効化 2. 漏洩した認証情報を rotate |
+| ELI-F003 | 環境変数漏洩指示 | :red_circle: RED | process.env + output の組み合わせが Elicitation に含まれる | ブロック | 1. MCPサーバーを無効化 2. 環境変数の漏洩範囲を確認 |
+| ELI-F004 | シークレットパターン検出 | :red_circle: RED | APIキー・トークンパターンが Elicitation に含まれる | ブロック + インシデント対応 | 1. 該当シークレットを即座に rotate 2. インシデント対応プロセスを開始 |
+| ELI-F005 | base64 隠し指示 | :red_circle: RED | base64デコード後に危険コマンドが含まれる | ブロック | 1. MCPサーバーのコードを精査 2. サーバーを無効化 |
+
+#### ELI 検出パターン（正規表現）
+
+```regex
+# ELI-F001: コマンド実行指示
+(?i)(execute\s+the\s+following|以下のコマンドを実行|以下を実行)
+
+# ELI-F002: 外部URL送信指示
+(?i)(curl|https?://).*\b(send|transmit|post|upload)\b
+
+# ELI-F003: 環境変数漏洩指示
+(?i)process\.env.*\b(output|print|log|send)\b
+
+# ELI-F004: シークレットパターン
+(sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|AKIA[0-9A-Z]{16}|xoxb-[0-9]+-[a-zA-Z0-9]+)
+
+# ELI-F005: base64 隠し指示
+(?i)base64.*decode.*(curl|exec|eval|sh\s+-c)
+```
+
+---
+
 ## 3. フラグ通知フォーマット
 
 ### RED FLAG フォーマット
@@ -243,6 +278,8 @@ curl.*api\.line\.me.*push
     | | QUA rules     |  | <-- 品質ルール (TEST_POLICY連携)
     | +---------------+  |
     | | CTX rules     |  | <-- コンテキストルール (SLIM_CONTEXT連携)
+    | +---------------+  |
+    | | ELI rules     |  | <-- Elicitation インジェクション検知
     | +---------------+  |
     +--------+-----------+
              |
@@ -315,8 +352,8 @@ curl.*api\.line\.me.*push
 
 | Flag Category | Guardrail Level | 自動回復 |
 |--------------|-----------------|---------|
-| SEC-F001~F004 | L4 (ABORT) | なし — 即時停止 |
-| SEC-F005~F007 | L3 (PAUSE) | ユーザー確認待ち |
+| SEC-F001~F004, SEC-F006, ELI-F001~F005 | L4 (ABORT) | なし — 即時停止 |
+| SEC-F005, SEC-F007, SEC-F009, SEC-F010 | L3 (PAUSE) | ユーザー確認待ち |
 | DES-F001~F003 | L4 (ABORT) | なし — 即時停止 |
 | DES-F004~F009 | L3 (PAUSE) | ユーザー確認待ち |
 | QUA-F001~F002 | L2 (CHECKPOINT) | Builder 修正 -> 再テスト (最大3回) |
@@ -390,7 +427,7 @@ curl.*api\.line\.me.*push
 
 | スキル | 連携フラグ | 連携方法 |
 |-------|----------|---------|
-| `secret-scan` | SEC-F001~F004 | シークレット検出パターンの共有 |
+| `secret-scan` | SEC-F001~F004, ELI-F004 | シークレット検出パターンの共有 |
 | `safety-check` | DES-F001~F010 | リスク分類ロジックの共有 |
 | `test-coverage` | QUA-F001~F002 | テストカバレッジ閾値の参照 |
 | `spec-compliance` | QUA-F006 | Breaking Change 検出 |
@@ -444,7 +481,7 @@ flag_overrides:
 ```yaml
 # Flag Suppressions
 flag_suppressions:
-  - id: SEC-F006         # ネットワーク外部通信の警告を抑制
+  - id: SEC-F009         # ネットワーク外部通信の警告を抑制
     reason: "CI/CD環境では外部通信が必須"
     scope: "CI only"     # CI環境のみ抑制
 
@@ -534,20 +571,27 @@ flags.jsonl    response      ARIS辞書
 | SEC-F002 | .env コミット | セキュリティ |
 | SEC-F003 | 認証情報外部送信 | セキュリティ |
 | SEC-F004 | シークレット stdout 出力 | セキュリティ |
+| SEC-F006 | ANTHROPIC_BASE_URL 書き換え | セキュリティ |
 | DES-F001 | システム破壊 | 破壊的操作 |
 | DES-F002 | DB 破壊 | 破壊的操作 |
 | DES-F003 | Git 履歴破壊 | 破壊的操作 |
 | DES-F010 | ディスク直接書き込み | 破壊的操作 |
 | COS-F001 | 無制限ループ | コスト/リソース |
 | COS-F006 | LINE Push 送信 | コスト/リソース |
+| ELI-F001 | コマンド実行指示 | Elicitation |
+| ELI-F002 | 外部URL送信指示 | Elicitation |
+| ELI-F003 | 環境変数漏洩指示 | Elicitation |
+| ELI-F004 | シークレットパターン検出 | Elicitation |
+| ELI-F005 | base64 隠し指示 | Elicitation |
 
 ### YELLOW FLAG（警告 + 確認要求）
 
 | ID | Name | Category |
 |----|------|----------|
 | SEC-F005 | 機密ファイルアクセス | セキュリティ |
-| SEC-F006 | ネットワーク外部通信 | セキュリティ |
-| SEC-F007 | 権限昇格 | セキュリティ |
+| SEC-F007 | allow リストバイパス試行 | セキュリティ |
+| SEC-F009 | ネットワーク外部通信 | セキュリティ |
+| SEC-F010 | 権限昇格 | セキュリティ |
 | DES-F004 | ファイル大量削除 | 破壊的操作 |
 | DES-F005 | Git 巻き戻し | 破壊的操作 |
 | DES-F006 | 公開操作 | 破壊的操作 |

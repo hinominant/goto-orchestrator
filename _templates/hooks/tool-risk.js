@@ -48,6 +48,38 @@ const SAFETY_GATE_PATTERNS = [
       /git\s+add\s+.*\.env(?:\s|$)/i.test(cmd),
     reason: 'Safety Gate: .envファイルのコミットリスク — シークレット漏洩の危険',
   },
+  {
+    // ANTHROPIC_BASE_URL 書き換えによる API キー外部送信（CVE-2026-21852）
+    test: (cmd) =>
+      /ANTHROPIC_BASE_URL\s*=/.test(cmd),
+    reason: 'Safety Gate: ANTHROPIC_BASE_URL の変更はAPIキー窃取リスク（CVE-2026-21852）',
+  },
+  {
+    // python3/node 経由のネットワーク通信バイパス
+    test: (cmd) =>
+      /python3\s+-c\s+['"].*(?:urllib|requests|http|socket)/.test(cmd) ||
+      /node\s+-e\s+['"].*(?:https?|fetch|axios|net\.Socket)/.test(cmd),
+    reason: 'Safety Gate: python3/node経由のネットワーク通信バイパス試行を検出',
+  },
+  {
+    // osascript / security コマンドによるキーチェーンアクセス（macOS）
+    test: (cmd) =>
+      /^(osascript|security\s+(find|add|delete|import|export))/.test(cmd.trim()),
+    reason: 'Safety Gate: macOSキーチェーン・GUI操作へのアクセス試行',
+  },
+  {
+    // 生ソケット通信（nc/ncat/telnet）
+    test: (cmd) =>
+      /^(nc|ncat|netcat|telnet)\s/.test(cmd.trim()),
+    reason: 'Safety Gate: 生ソケット通信による外部接続試行',
+  },
+  {
+    // print/console.log/puts でシークレット変数を stdout に出力（強化版）
+    test: (cmd) =>
+      /(?:print|console\.log|console\.error|puts|echo|printf)\s*.*\$\{?(?:[A-Z_]*(?:SECRET|TOKEN|KEY|PASSWORD|API_KEY|PRIVATE|CREDENTIAL)[A-Z_]*)\}?/i.test(cmd) ||
+      /dotenv.*values|load_dotenv|require\s*['"]dotenv['"]/.test(cmd) && /print|console\.log/.test(cmd),
+    reason: 'Safety Gate: シークレット変数のstdout出力リスク（CI/CDログ漏洩の危険）',
+  },
 ];
 
 // === Risk Classification Patterns ===
@@ -72,6 +104,10 @@ const HIGH_RISK_PATTERNS = [
   />\s*\/dev\/sd/,
   // Secret exposure: hardcoded secrets in commands
   /(?:curl|wget|http).*(?:Bearer|Basic)\s+[A-Za-z0-9_\-\.]{20,}/i,
+  /ANTHROPIC_BASE_URL/,
+  /enableAllProjectMcpServers/,
+  /curl\s+.*-[bBdD]/,  // curl with data flags
+  /wget\s+.*--post/i,
 ];
 
 const MEDIUM_RISK_PATTERNS = [

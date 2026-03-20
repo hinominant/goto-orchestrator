@@ -1,6 +1,9 @@
 {
-  "_comment": "Goto Orchestrator — セキュリティ重視の推奨設定。install.sh --with-permissions で配布。",
+  "_comment": "Goto Orchestrator — セキュリティ重視の推奨設定。install.sh --with-permissions で配布。CVE対応済み（enableAllProjectMcpServers, disableBypassPermissionsMode）。",
+  "enableAllProjectMcpServers": false,
+  "disableBypassPermissionsMode": "disable",
   "sandbox": {
+    "_comment": "サンドボックス設定。機密ファイルへの直接読み取りパスをブロックする。",
     "enabled": true,
     "allowUnsandboxedCommands": false,
     "filesystem": {
@@ -16,6 +19,7 @@
     }
   },
   "permissions": {
+    "_comment": "allow: 明示的に許可するコマンド（最小権限）。deny: 危険・機密漏洩リスクのある操作を拒否。denyが優先される。",
     "allow": [
       "Bash(npm test *)",
       "Bash(npm run *)",
@@ -26,6 +30,10 @@
       "Bash(pip *)",
       "Bash(python -m pytest *)",
       "Bash(python -m mypy *)",
+      "Bash(python3 --version)",
+      "Bash(python3 -m pytest *)",
+      "Bash(python3 -m mypy *)",
+      "Bash(node --version)",
       "Bash(ruff *)",
       "Bash(eslint *)",
       "Bash(prettier *)",
@@ -57,22 +65,39 @@
       "Bash(: > *)",
       "Bash(mkfs *)",
       "Bash(dd if=*)",
-      "Bash(curl * --data *password*)",
-      "Bash(curl * --data *secret*)",
-      "Bash(curl * --data *token*)",
-      "Bash(curl * -d *password*)",
-      "Bash(curl * -d *secret*)",
-      "Bash(curl * -d *token*)",
+      "Bash(osascript *)",
+      "Bash(security *)",
+      "Bash(pbcopy *)",
+      "Bash(pbpaste *)",
+      "Bash(nc *)",
+      "Bash(ncat *)",
+      "Bash(telnet *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(python3 -c *)",
+      "Bash(node -e *)",
+      "Bash(node -r *)",
+      "Bash(* .env*)",
+      "Bash(* ~/.ssh/*)",
+      "Bash(* ~/.aws/*)",
+      "Bash(cat .env*)",
+      "Bash(cat *secret*)",
+      "Bash(cat *credential*)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./secrets/**)",
       "Read(**/*.pem)",
       "Read(**/*.key)",
       "Read(**/credentials.json)",
-      "Read(**/.htpasswd)"
+      "Read(**/.htpasswd)",
+      "Write(.env)",
+      "Write(.env.*)",
+      "Edit(.env)",
+      "Edit(.env.*)"
     ]
   },
   "hooks": {
+    "_comment": "フック設定。PreToolUse: ツール実行前リスク評価。PostToolUse: 実行後ログ記録。Elicitation: 情報収集リクエストのガード。Stop: セッションサマリ生成。",
     "PreToolUse": [
       {
         "matcher": "*",
@@ -91,6 +116,17 @@
           {
             "type": "command",
             "command": "node .claude/hooks/post-tool-use.js"
+          }
+        ]
+      }
+    ],
+    "Elicitation": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/elicitation-guard.js"
           }
         ]
       }
