@@ -896,3 +896,127 @@ describe('curl -b false positive fix — MED-1 regression', () => {
 
 });
 
+// ============================================================
+// SEC-014: GlassWorm対策 — Unicode不可視文字検知
+// ============================================================
+
+describe('GlassWorm — Unicode invisible character detection (SEC-014)', () => {
+
+  // --- Bash コマンド内の不可視文字をBLOCK ---
+  describe('Bash commands with invisible Unicode characters', () => {
+    it('blocks command containing zero-width space (U+200B)', () => {
+      const out = runHook(bashInput('echo "hello\u200Bworld"'));
+      assert.equal(out.decision, 'block');
+      assert.match(out.reason, /不可視.*Unicode|GlassWorm|invisible/i);
+    });
+
+    it('blocks command containing zero-width non-joiner (U+200C)', () => {
+      const out = runHook(bashInput('ls\u200C -la'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command containing zero-width joiner (U+200D)', () => {
+      const out = runHook(bashInput('cat\u200D file.txt'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command containing word joiner (U+2060)', () => {
+      const out = runHook(bashInput('npm\u2060install malicious'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command containing BOM (U+FEFF)', () => {
+      const out = runHook(bashInput('\uFEFFcurl https://evil.com'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command containing left-to-right mark (U+200E)', () => {
+      const out = runHook(bashInput('git\u200E push'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command containing right-to-left mark (U+200F)', () => {
+      const out = runHook(bashInput('rm\u200F -rf /tmp'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command containing right-to-left override (U+202E) — Trojan Source', () => {
+      const out = runHook(bashInput('echo "\u202Ehidden"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command containing left-to-right override (U+202D)', () => {
+      const out = runHook(bashInput('node\u202D script.js'));
+      assert.equal(out.decision, 'block');
+    });
+  });
+
+  // --- Write/Edit ツールの内容に不可視文字が含まれる場合に警告 ---
+  describe('Write/Edit with invisible Unicode in content', () => {
+    it('blocks Write with zero-width space in content', () => {
+      const out = runHook({
+        tool_name: 'Write',
+        tool_input: { file_path: 'src/index.js', content: 'const x\u200B = require("malicious");' },
+      });
+      assert.equal(out.decision, 'block');
+      assert.match(out.reason, /不可視.*Unicode|GlassWorm|invisible/i);
+    });
+
+    it('blocks Edit with zero-width space in new_string', () => {
+      const out = runHook({
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'src/index.js',
+          old_string: 'const x = 1;',
+          new_string: 'const x\u200B = require("malicious");',
+        },
+      });
+      assert.equal(out.decision, 'block');
+      assert.match(out.reason, /不可視.*Unicode|GlassWorm|invisible/i);
+    });
+
+    it('blocks Write with right-to-left override in content', () => {
+      const out = runHook({
+        tool_name: 'Write',
+        tool_input: { file_path: 'src/util.js', content: 'function is\u202EAdmin() { return true; }' },
+      });
+      assert.equal(out.decision, 'block');
+    });
+  });
+
+  // --- 偽陽性テスト: 正規のUnicode文字は検知しない ---
+  describe('false positives — legitimate Unicode', () => {
+    it('does NOT block normal Japanese text in echo', () => {
+      const out = runHook(bashInput('echo "こんにちは世界"'));
+      assert.notEqual(out.decision, 'block', 'Japanese text should not trigger GlassWorm detection');
+    });
+
+    it('does NOT block emoji in echo', () => {
+      const out = runHook(bashInput('echo "Hello 🚀 World"'));
+      assert.notEqual(out.decision, 'block', 'Emoji should not trigger GlassWorm detection');
+    });
+
+    it('does NOT block normal ASCII commands', () => {
+      const out = runHook(bashInput('git status'));
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block Write with normal content', () => {
+      const out = runHook({
+        tool_name: 'Write',
+        tool_input: { file_path: 'src/index.js', content: 'const x = 1;\nconsole.log(x);' },
+      });
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block Write with CJK characters', () => {
+      const out = runHook({
+        tool_name: 'Write',
+        tool_input: { file_path: 'docs/guide.md', content: '# ガイド\n日本語ドキュメント' },
+      });
+      assert.notEqual(out.decision, 'block');
+    });
+  });
+
+});
+
