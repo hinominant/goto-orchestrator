@@ -1,14 +1,14 @@
-# Goto Orchestrator
+# LM Orchestrator
 
 Claude Code を安全に使うためのエージェントフレームワーク。
 
-初心者エンジニアでも安心して Claude Code を活用できるよう、**Security-First** で設計されたエージェントチーム構築フレームワーク。67エージェント + 27+共通プロトコル + Tool Risk Hooks（4-Hook体制）で、強力かつ安全な開発体験を提供する。
+初心者エンジニアでも安心して Claude Code を活用できるよう、**Security-First** で設計されたエージェントチーム構築フレームワーク。73エージェント + 27+共通プロトコル + Tool Risk Hooks（4-Hook体制）で、強力かつ安全な開発体験を提供する。
 
 ---
 
 ## Security Features
 
-このフレームワークの最大の差別化ポイント。Claude Code は強力だが、初心者が意図せず破壊的操作を実行してしまうリスクがある。Goto Orchestrator はそのリスクを体系的に軽減する。
+このフレームワークの最大の差別化ポイント。Claude Code は強力だが、初心者が意図せず破壊的操作を実行してしまうリスクがある。LM Orchestrator はそのリスクを体系的に軽減する。
 
 ### Tool Risk Hooks（4-Hook体制）
 
@@ -86,7 +86,7 @@ your-project/
 │   │   ├── nexus.md          # オーケストレーター
 │   │   ├── analyst.md        # データ分析
 │   │   ├── auditor.md        # 品質監査
-│   │   ├── ...               # 他のエージェント（67個）
+│   │   ├── ...               # 他のエージェント（73個）
 │   │   ├── bard/             # references/ を持つエージェント
 │   │   │   └── references/
 │   │   └── atlas/
@@ -143,7 +143,7 @@ User Request
                  │  (hinominant/             │
                  │   LM-orchestrator-engineer)      │
                  │                          │
-                 │  67 agents + references  │
+                 │  73 agents + references  │
                  └────────┬─────────────────┘
                           │
             curl / install.sh
@@ -156,7 +156,7 @@ User Request
      (必要なエージェントを選択)
 ```
 
-## Agents (67)
+## Agents (73)
 
 ### Orchestration（統括）
 
@@ -325,7 +325,7 @@ User Request
 | PROJECT_AFFINITY | エージェント×プロジェクトタイプの親和性マッピング |
 | REVERSE_FEEDBACK | 下流→上流の品質フィードバック |
 
-## Custom Commands (7)
+## Custom Commands (9)
 
 エージェントとは別に、ワークフローモードとして使えるスラッシュコマンド。デフォルトで全てインストールされる。
 

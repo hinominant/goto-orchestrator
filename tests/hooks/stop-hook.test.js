@@ -22,7 +22,7 @@ const HOOK = path.join(__dirname, '../../_templates/hooks/stop-hook.js');
 let tmpDir;
 
 before(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'goto-test-stop-'));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lm-orch-test-stop-'));
 });
 
 after(() => {
@@ -62,7 +62,7 @@ describe('normal operation', () => {
   });
 
   it('works when no tool log exists', () => {
-    const freshDir = fs.mkdtempSync(path.join(os.tmpdir(), 'goto-test-no-log-'));
+    const freshDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lm-orch-test-no-log-'));
     try {
       const out = runHook({ session_id: 'no-log-session', stop_reason: 'end_turn' }, freshDir);
       assert.deepEqual(out, { continue: true });
@@ -186,7 +186,7 @@ describe('RESUME_CONTEXT.md generation', () => {
   });
 
   it('creates .claude/ directory if missing', () => {
-    const freshDir = fs.mkdtempSync(path.join(os.tmpdir(), 'goto-test-noclaudedir-'));
+    const freshDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lm-orch-test-noclaudedir-'));
     try {
       assert.ok(!fs.existsSync(path.join(freshDir, '.claude')));
       runHook({ session_id: 'fresh', stop_reason: 'end_turn' }, freshDir);
@@ -227,7 +227,7 @@ describe('resilience', () => {
   });
 
   it('returns { continue: true } on corrupt log file', () => {
-    const corruptDir = fs.mkdtempSync(path.join(os.tmpdir(), 'goto-test-corrupt-'));
+    const corruptDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lm-orch-test-corrupt-'));
     try {
       const contextDir = path.join(corruptDir, '.context');
       fs.mkdirSync(contextDir);

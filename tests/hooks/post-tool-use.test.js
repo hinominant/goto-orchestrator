@@ -22,7 +22,7 @@ const HOOK = path.join(__dirname, '../../_templates/hooks/post-tool-use.js');
 let tmpDir;
 
 before(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'goto-test-post-'));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lm-orch-test-post-'));
 });
 
 after(() => {
@@ -82,7 +82,7 @@ describe('normal operation', () => {
   });
 
   it('creates .context/ directory if missing', () => {
-    const freshDir = fs.mkdtempSync(path.join(os.tmpdir(), 'goto-test-fresh-'));
+    const freshDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lm-orch-test-fresh-'));
     try {
       runHook({ tool_name: 'Bash', tool_input: { command: 'git status' }, session_id: 'test' }, freshDir);
       assert.ok(fs.existsSync(path.join(freshDir, '.context', 'tool-log.jsonl')));
@@ -207,7 +207,7 @@ describe('input_summary truncation', () => {
 describe('crash resilience — MED-7 regression', () => {
 
   it('returns { continue: true } even when .context is read-only', () => {
-    const readonlyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'goto-test-ro-'));
+    const readonlyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lm-orch-test-ro-'));
     try {
       // .context ディレクトリを作成してから読み取り専用に設定
       const contextDir = path.join(readonlyDir, '.context');

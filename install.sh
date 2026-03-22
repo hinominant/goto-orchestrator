@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Goto Orchestrator Installer
+# LM Orchestrator Installer
 # Usage:
 #   curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks
 #   curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks nexus rally builder radar
@@ -35,7 +35,7 @@ done
 # Default: install all if no agent args
 AGENTS="${AGENT_ARGS[*]:-$ALL_AGENTS}"
 
-echo "=== Goto Orchestrator Installer ==="
+echo "=== LM Orchestrator Installer ==="
 echo "Source: github.com/${REPO}"
 echo ""
 if [ "$WITH_HOOKS" = true ]; then
@@ -200,14 +200,14 @@ fi
 
 echo "[9/12] Checking CLAUDE.md..."
 if [ -f "CLAUDE.md" ]; then
-  if grep -q "Goto Orchestrator" CLAUDE.md 2>/dev/null; then
+  if grep -q "LM Orchestrator" CLAUDE.md 2>/dev/null; then
     echo "  -> CLAUDE.md already has framework reference, skipping"
   else
     cat >> CLAUDE.md << 'FRAMEWORK_EOF'
 
 ## Agent Team Framework
 
-This project uses [Goto Orchestrator](https://github.com/hinominant/LM-orchestrator-engineer).
+This project uses [LM Orchestrator](https://github.com/hinominant/LM-orchestrator-engineer).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules
@@ -230,7 +230,7 @@ else
 
 ## Agent Team Framework
 
-This project uses [Goto Orchestrator](https://github.com/hinominant/LM-orchestrator-engineer).
+This project uses [LM Orchestrator](https://github.com/hinominant/LM-orchestrator-engineer).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules
