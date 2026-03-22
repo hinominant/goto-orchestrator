@@ -357,7 +357,21 @@ process.stdin.on('end', () => {
       process.stdout.write(JSON.stringify(result));
     }
   } catch (_e) {
-    // Parse error -> approve to avoid blocking
+    // === Fail-Open Design Rationale (X-1 / S-1) ===
+    // パースエラー時は approve を返す（fail-open）。
+    //
+    // 根拠:
+    // 1. Hook がクラッシュ（stdout なし）すると Claude Code 全体が停止し、
+    //    ユーザーの作業が完全にブロックされる（可用性の喪失）
+    // 2. パースエラーはフック自体のバグや stdin の不正な JSON が原因であり、
+    //    攻撃者が意図的に引き起こすには Claude Code の内部プロトコルの知識が必要
+    // 3. fail-open しても Layer 1（Sandbox）と Layer 2（Permissions）が
+    //    独立して機能するため、壊滅的なバイパスにはならない（多層防御の原則）
+    //
+    // リスク受容:
+    // - Hook 層（Layer 3）が一時的に無効化されるリスクを受容する
+    // - Layer 1 + Layer 2 が残存するため、rm -rf /, sudo, curl 等は
+    //   Permissions の deny で引き続きブロックされる
     process.stdout.write(JSON.stringify({ decision: 'approve' }));
   }
 });
